@@ -1,27 +1,57 @@
-Project: Gross Profit Calculator using AWS Glue and EMR (PySpark)
+# AWS Glue + EMR PySpark ETL Project
 
-Description:
-This project builds a complete data processing pipeline using AWS Glue and Amazon EMR with PySpark to calculate gross profit from billing, sales, and production cost data.
+## Project Overview
 
-Purpose:
-To demonstrate the integration of AWS Glue (crawlers and catalog), S3, EMR, and PySpark for ETL and reporting purposes in a real-world financial data use case.
+This project demonstrates how to process sales transaction data using a hybrid AWS Glue + EMR-based architecture. It leverages AWS Glue Crawlers, Amazon Data Catalog, and PySpark running on Amazon EMR to perform data extraction, transformation, and loading (ETL) of business records.
 
-Process Overview:
-1. Raw input files are stored in S3.
-2. AWS Glue Crawlers scan and catalog the files into tables.
-3. The EMR cluster is used to run a PySpark job:
-   - Reads the tables using Spark SQL.
-   - Joins and transforms the data to calculate gross profit.
-   - Saves the final output back to S3 in CSV format.
+The core objective is to compute gross profit by integrating and transforming datasets that include:
 
-## Key Files
+- Billing records
+- Units sold per item
+- Production costs
 
-- emr_cluster_setup.md: Instructions for setting up the EMR cluster and permissions
-- glue_job_setup.md: Instructions for preparing the Glue-compatible PySpark job and running it
-- glue_etl_job.py: PySpark job to process and transform transaction data
+---
 
-## Requirements
+## Architecture
 
-- AWS CLI configured
-- IAM permissions for EC2, S3, Glue, and EMR
-- Input data stored in Amazon S3 in CSV or Parquet format
+- **AWS S3**: Stores input data (`CSV` files) and final ETL output.
+- **AWS Lake Formation**: Provides secure access control to the data catalog and S3 buckets.
+- **AWS Glue Crawlers**: Crawls raw CSV files and creates external tables in the AWS Glue Data Catalog.
+- **AWS Glue Data Catalog**: Central metadata repository used by EMR for querying.
+- **Amazon EMR Cluster**: Executes a PySpark script via SSH that reads from Glue tables, processes data, and writes results back to S3.
+
+---
+
+## ETL Workflow
+
+1. **Input Files** (stored in S3):
+   - `billing_data_dairy_07_2023.csv`
+   - `units_sold_07_2023.csv`
+   - `production_costs_07_2023.csv`
+
+2. **AWS Glue Crawlers**:
+   - Crawlers scan these files and create tables in the Glue Data Catalog:
+     - `sumukha_billing_x_processed`
+     - `units_sold`
+     - `production_costs`
+
+3. **PySpark Script on EMR**:
+   - Connects to Glue Catalog using Hive support
+   - Performs `JOINs` and transformations to calculate gross profit:
+     ```
+     gross_profit = bill_amount - (units_sold * cost_per_unit_usd)
+     ```
+   - Writes the output to:
+     - `s3://sumukha-billing-x-datalake/reports/gross-profits`
+
+---
+
+## Key Learnings
+
+- Hands-on experience in hybrid ETL architecture combining AWS Glue and EMR
+- Using AWS Lake Formation for secure access to S3 and Glue Data Catalog
+- Creating PySpark scripts with Hive support for dynamic querying of Glue tables
+- Data engineering best practices for transformation pipelines
+- Writing final output back to S3 in CSV format using Spark
+
+---
